@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>이메일 활성화</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      min-width: 100%;
+      font-size: 16px;
+      line-height: 1.2;
+      background-color: aliceblue;
+      color: black;
+    "
+  >
+    <div class="email-wrapper" style="max-width: 600px; margin: 0 auto">
+      <div
+        class="email-header"
+        style="background-color: #0060f3; padding: 24px; color: white"
+      >
+        <h1
+          style="
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+          "
+        >
+          반갑습니다
+        </h1>
+      </div>
+      <div class="email-body" style="padding: 24; background-color: white">
+        <p style="margin-top: 0; margin-bottom: 24px">
+          반갑습니다 <%= user.name %>,
+        </p>
+        <p style="margin-top: 0; margin-bottom: 24px">
+          가입해주셔서 감사합니다 계정을 활성화 하기위해 이코드를 사용해 주세요
+          코드:
+        </p>
+        <p style="margin-top: 0; margin-bottom: 24px">
+          <%= verificationCode %>
+        </p>
+        <p style="margin-top: 0; margin-bottom: 24px">
+          이코드는 10분 후에 만료됩니다.
+        </p>
+        <p style="margin-top: 0; margin-bottom: 24px">
+          가입을 원하시지 않으시다면 메일을 무시해주세요.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
