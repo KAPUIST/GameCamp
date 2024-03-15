@@ -31,7 +31,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "비밀번호를 입력해 주세요."],
+      required: [true, "이메일을 입력해 주세요."],
       validate: {
         validator: function (value: string) {
           return emailValidationReg.test(value);
@@ -42,7 +42,6 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "비밀번호를 입력해 주세요."],
       minlength: [8, "최소 8자리 이상의 비밀번호를 입력해주세요."],
       //select false 를 하여 쿼리 결과로 비밀번호를 포함하지 않습니다.
       select: false,

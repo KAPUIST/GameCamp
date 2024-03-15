@@ -8,6 +8,7 @@ import path from "path";
 import sendMail from "../utils/mail";
 import { createLoginToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
+import { getUserId } from "../services/user.service";
 require("dotenv").config();
 
 interface IRegister {
@@ -27,6 +28,11 @@ interface IVerificationRequest {
 interface ILoginRequest {
   email: string;
   password: string;
+}
+interface ISocialLogin {
+  email: string;
+  name: string;
+  avatar: string;
 }
 
 //유저 이메일 인증 컨트롤러
@@ -199,6 +205,37 @@ export const logoutUser = AsyncErrorHandler(
         success: true,
         message: "로그아웃 되었습니다.",
       });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 소셜 로그인
+export const socialLogin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, name, avatar } = req.body as ISocialLogin;
+      const user = await userModel.findOne({ email });
+      if (!user) {
+        const newUser = await userModel.create({ email, name, avatar });
+        createLoginToken(newUser, 200, res);
+      } else {
+        createLoginToken(user, 200, res);
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 id 조회
+export const getUserInfo = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?._id;
+
+      await getUserId(userId, res);
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
     }
