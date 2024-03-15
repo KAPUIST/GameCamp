@@ -3,6 +3,7 @@ import { AsyncErrorHandler } from "./asyncErrorHandler";
 import ErrorHandler from "../utils/errorHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { redis } from "../utils/redis";
+import { accessTokenOptions, refreshTokenOptions } from "../utils/jwt";
 require("dotenv").config();
 
 //유저 인증 기능
@@ -84,6 +85,13 @@ export const updateAccessToken = AsyncErrorHandler(
         process.env.REFRESH_TOKEN as string,
         { expiresIn: "1d" }
       );
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      res.status(200).json({
+        success: true,
+        accessToken,
+      });
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
     }
