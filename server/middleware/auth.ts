@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { AsyncErrorHandler } from "./asyncErrorHandler";
 import ErrorHandler from "../utils/errorHandler";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { redis } from "../utils/redis";
+import { accessTokenOptions, refreshTokenOptions } from "../utils/jwt";
 require("dotenv").config();
 
 //유저 인증 기능
@@ -49,3 +50,50 @@ export const validateUserRole = (...roles: string[]) => {
     return next();
   };
 };
+
+//엑세스토큰 업데이트 기능
+export const updateAccessToken = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      //리프레쉬 토큰먼저
+      const refresh_token = req.cookies.refresh_token;
+      //토큰 해석
+      const decodeRefreshToken = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
+
+      if (!decodeRefreshToken) {
+        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+      }
+
+      const user = await redis.get(decodeRefreshToken.id);
+      if (!user) {
+        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+      }
+      //유저 정보가 세션에 존재한다면
+      //토큰을 재발급.
+      const userData = JSON.parse(user);
+
+      const accessToken = jwt.sign(
+        { id: userData._id },
+        process.env.ACCESS_TOKEN as string,
+        { expiresIn: "5m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: userData._id },
+        process.env.REFRESH_TOKEN as string,
+        { expiresIn: "1d" }
+      );
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      res.status(200).json({
+        success: true,
+        accessToken,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);

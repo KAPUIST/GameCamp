@@ -93,11 +93,15 @@ userSchema.methods.comparePassword = async function (
 
 //엑세스토큰 발급
 userSchema.methods.accessToken = function () {
-  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || "");
+  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || "", {
+    expiresIn: "5m",
+  });
 };
 //리프레쉬 토큰 발급
 userSchema.methods.refreshToken = function () {
-  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || "");
+  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || "", {
+    expiresIn: "1d",
+  });
 };
 
 const userModel: Model<IUser> = mongoose.model("User", userSchema);
