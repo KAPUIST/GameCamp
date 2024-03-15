@@ -29,13 +29,20 @@ interface ILoginRequest {
   email: string;
   password: string;
 }
+interface ISocialLogin {
+  email: string;
+  name: string;
+  avatar: string;
+}
 
 //유저 이메일 인증 컨트롤러
 export const registerUser = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, email, password } = req.body as IRegister;
-
+      if (password.length < 8) {
+        return next(new ErrorHandler(400, "비밀번호 길이는 최소 8자리입니다."));
+      }
       //이메일 중복 확인
       const isEmailDuplicated = await userModel.findOne({ email });
       if (isEmailDuplicated) {
@@ -203,6 +210,26 @@ export const logoutUser = AsyncErrorHandler(
     }
   }
 );
+
+
+//유저 소셜 로그인
+export const socialLogin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, name, avatar } = req.body as ISocialLogin;
+      const user = await userModel.findOne({ email });
+      if (!user) {
+        const newUser = await userModel.create({ email, name, avatar });
+        createLoginToken(newUser, 200, res);
+      } else {
+        createLoginToken(user, 200, res);
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
 
 //유저 id 조회
 export const getUserInfo = AsyncErrorHandler(
