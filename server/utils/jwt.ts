@@ -25,26 +25,26 @@ export const createLoginToken = (
   const accessToken = user.accessToken();
 
   const refreshToken = user.refreshToken();
-  //string 오류 발생 parsint 로 해결하려 했지만 여전히 string 이 아닌 undefined 발생 해결하기 위해 || '600'
+  //string 오류 발생 parsint 로 해결하려 했지만 여전히 string 이 아닌 undefined 발생 해결하기 위해 || ''
   //더나은 방법 모색
-  const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || "600"); // 10분 설정
+  const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || "5"); // 10분 설정
   const refreshTokenExpire = parseInt(
-    process.env.REFRESH_TOKEN_EXPIRE || "6000"
+    process.env.REFRESH_TOKEN_EXPIRE || "1" // 하루 설정
   );
 
   //cookie() 에서는 초가 ms단위
   const accessTokenOptions: IToken = {
-    expires: new Date(Date.now() + accessTokenExpire * 1000),
+    expires: new Date(Date.now() + accessTokenExpire * 60 * 1000),
     httpOnly: true,
     sameSite: "lax",
-    maxAge: accessTokenExpire * 1000,
+    maxAge: accessTokenExpire * 60 * 1000,
     secure: process.env.NODE_ENV === "development" ? false : true,
   };
   const refreshTokenOptions: IToken = {
-    expires: new Date(Date.now() + refreshTokenExpire * 1000),
+    expires: new Date(Date.now() + refreshTokenExpire * 24 * 60 * 60 * 1000),
     httpOnly: true,
     sameSite: "lax",
-    maxAge: refreshTokenExpire * 1000,
+    maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000,
     secure: process.env.NODE_ENV === "development" ? false : true,
   };
 
