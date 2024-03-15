@@ -209,6 +209,7 @@ export const getUserInfo = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?._id;
+
       await getUserId(userId, res);
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
