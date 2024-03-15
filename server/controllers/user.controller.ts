@@ -34,7 +34,9 @@ export const registerUser = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, email, password } = req.body as IRegister;
-
+      if (password.length < 8) {
+        return next(new ErrorHandler(400, "비밀번호 길이는 최소 8자리입니다."));
+      }
       //이메일 중복 확인
       const isEmailDuplicated = await userModel.findOne({ email });
       if (isEmailDuplicated) {
