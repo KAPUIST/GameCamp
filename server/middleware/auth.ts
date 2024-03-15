@@ -33,3 +33,19 @@ export const isAuthenticated = AsyncErrorHandler(
     next();
   }
 );
+
+//유저 권한 검증
+//권한은 여러개 존재함.
+// https://stackoverflow.com/questions/70547488/i-am-working-on-authorization-and-it-shows-error-cannot-read-property-role-of
+// 권한을 컨트롤 하고싶은데 이런식으로 해결할수있다는 레퍼런스 여러가지 권한 을 사용가능해보임.
+export const validateUserRole = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.user?.role || "")) {
+      return next(
+        new ErrorHandler(403, `권한: ${req.user?.role}은 사용할수 없습니다.`)
+      );
+    }
+
+    return next();
+  };
+};

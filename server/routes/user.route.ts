@@ -5,7 +5,7 @@ import {
   registerUser,
   verificationUser,
 } from "../controllers/user.controller";
-import { isAuthenticated } from "../middleware/auth";
+import { isAuthenticated, validateUserRole } from "../middleware/auth";
 
 const userRouter = express.Router();
 
