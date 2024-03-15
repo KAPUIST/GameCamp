@@ -8,6 +8,7 @@ import path from "path";
 import sendMail from "../utils/mail";
 import { createLoginToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
+import { getUserId } from "../services/user.service";
 require("dotenv").config();
 
 interface IRegister {
@@ -197,6 +198,18 @@ export const logoutUser = AsyncErrorHandler(
         success: true,
         message: "로그아웃 되었습니다.",
       });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 id 조회
+export const getUserInfo = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?._id;
+      await getUserId(userId, res);
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
     }
