@@ -5,13 +5,21 @@ import cookieParser from "cookie-parser";
 require("dotenv").config();
 import { CustomErrorHandler } from "./middleware/error";
 import userRouter from "./routes/user.route";
+import morgan from "morgan";
 
 process.env.NODE_ENV =
   process.env.NODE_ENV &&
   process.env.NODE_ENV.trim().toLowerCase() == "production"
     ? "production"
     : "development";
+
 console.log(`${process.env.NODE_ENV} Mode`);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined")); // 배포환경이면
+} else {
+  app.use(morgan("dev")); // 개발환경이면
+}
 //바디파서
 app.use(express.json({ limit: "50mb" }));
 

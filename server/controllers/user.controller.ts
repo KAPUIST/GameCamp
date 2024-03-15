@@ -211,6 +211,7 @@ export const logoutUser = AsyncErrorHandler(
   }
 );
 
+
 //유저 소셜 로그인
 export const socialLogin = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -228,6 +229,7 @@ export const socialLogin = AsyncErrorHandler(
     }
   }
 );
+
 
 //유저 id 조회
 export const getUserInfo = AsyncErrorHandler(
