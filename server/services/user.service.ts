@@ -1,11 +1,18 @@
 import { Response } from "express";
 import userModel from "../models/user.model";
+import { redis } from "../utils/redis";
 
 //유저 조회
+//redis를 사용하고있으므로 redis에서 가져오도록 요청.
 export const getUserId = async (id: string, res: Response) => {
-  const user = await userModel.findById(id);
-  res.status(200).json({
-    success: true,
-    user,
-  });
+  const userInRedis = await redis.get(id);
+
+  if (userInRedis) {
+    const user = JSON.parse(userInRedis);
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  }
+  //await userModel.findById(id);
 };

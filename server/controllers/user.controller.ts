@@ -2,11 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import userModel, { IUser } from "../models/user.model";
 import ErrorHandler from "../utils/errorHandler";
 import { AsyncErrorHandler } from "../middleware/asyncErrorHandler";
-import jwt, { Secret } from "jsonwebtoken";
+import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/mail";
-import { createLoginToken } from "../utils/jwt";
+import {
+  accessTokenOptions,
+  createLoginToken,
+  refreshTokenOptions,
+} from "../utils/jwt";
 import { redis } from "../utils/redis";
 import { getUserId } from "../services/user.service";
 require("dotenv").config();
@@ -33,6 +37,14 @@ interface ISocialLogin {
   email: string;
   name: string;
   avatar: string;
+}
+interface IEditUserInfo {
+  email?: string;
+  name?: string;
+}
+interface IEditUserPassword {
+  pastPassword: string;
+  newPassword: string;
 }
 
 //유저 이메일 인증 컨트롤러
@@ -153,6 +165,54 @@ export const verificationUser = AsyncErrorHandler(
     }
   }
 );
+//엑세스토큰 업데이트 기능
+export const updateAccessToken = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      //리프레쉬 토큰먼저
+      const refresh_token = req.cookies.refresh_token;
+      //토큰 해석
+      const decodeRefreshToken = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
+
+      if (!decodeRefreshToken) {
+        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+      }
+
+      const userInRedis = await redis.get(decodeRefreshToken.id);
+      if (!userInRedis) {
+        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+      }
+      //유저 정보가 세션에 존재한다면
+      //토큰을 재발급.
+      const userData = JSON.parse(userInRedis);
+
+      const accessToken = jwt.sign(
+        { id: userData._id },
+        process.env.ACCESS_TOKEN as string,
+        { expiresIn: "5m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: userData._id },
+        process.env.REFRESH_TOKEN as string,
+        { expiresIn: "1d" }
+      );
+
+      // req.user = userData;
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      res.status(200).json({
+        success: true,
+        accessToken,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
 
 // 유저 로그인
 export const loginUser = AsyncErrorHandler(
@@ -211,7 +271,6 @@ export const logoutUser = AsyncErrorHandler(
   }
 );
 
-
 //유저 소셜 로그인
 export const socialLogin = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -230,7 +289,6 @@ export const socialLogin = AsyncErrorHandler(
   }
 );
 
-
 //유저 id 조회
 export const getUserInfo = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -238,6 +296,73 @@ export const getUserInfo = AsyncErrorHandler(
       const userId = req.user?._id;
 
       await getUserId(userId, res);
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 정보 수정 기능
+export const editUserInfo = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, name } = req.body as IEditUserInfo;
+
+      const userId = req.user?._id;
+      console.log(userId);
+      const user = await userModel.findById(userId);
+
+      if (email && user) {
+        const findDuplicatedeMail = await userModel.findOne({ email });
+        if (findDuplicatedeMail) {
+          return next(new ErrorHandler(400, "이미 존재하는 이메일 입니다."));
+        }
+        user.email = email;
+      }
+      if (name && user) {
+        user.name = name;
+      }
+      await user?.save();
+      await redis.set(userId, JSON.stringify(user));
+      res.status(200).json({
+        success: true,
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+//유저 비밀번호 수정 기능
+export const editUserPassword = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log(req.user);
+      const { pastPassword, newPassword } = req.body as IEditUserPassword;
+
+      if (!pastPassword || !newPassword) {
+        return next(
+          new ErrorHandler(400, "비밀번호 항목을 모두 입력해주세요.")
+        );
+      }
+      const user = await userModel.findById(req.user?._id).select("+password");
+      if (user?.password === undefined) {
+        return next(new ErrorHandler(400, "유저를 찾을수 없습니다."));
+      }
+
+      const isPastPasswordCorrect = await user?.comparePassword(pastPassword);
+
+      if (!isPastPasswordCorrect) {
+        return next(new ErrorHandler(400, "비밀번호가 일치하지 않습니다."));
+      }
+      user.password = newPassword;
+
+      await user.save();
+
+      res.status(201).json({
+        success: true,
+        user,
+      });
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
     }
