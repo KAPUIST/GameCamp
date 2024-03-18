@@ -13,6 +13,7 @@ import {
 } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import { getUserId } from "../services/user.service";
+import cloudinary from "cloudinary";
 require("dotenv").config();
 
 interface IRegister {
@@ -45,6 +46,9 @@ interface IEditUserInfo {
 interface IEditUserPassword {
   pastPassword: string;
   newPassword: string;
+}
+interface IEditUserAvatar {
+  avatar: string;
 }
 
 //유저 이메일 인증 컨트롤러
@@ -337,7 +341,6 @@ export const editUserInfo = AsyncErrorHandler(
 export const editUserPassword = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log(req.user);
       const { pastPassword, newPassword } = req.body as IEditUserPassword;
 
       if (!pastPassword || !newPassword) {
@@ -359,7 +362,61 @@ export const editUserPassword = AsyncErrorHandler(
 
       await user.save();
 
+      await redis.set(req.user?._id, JSON.stringify(user));
+
       res.status(201).json({
+        success: true,
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 아바타 수정 기능
+export const editUserAvatar = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { avatar } = req.body;
+      if (!avatar) {
+        return next(new ErrorHandler(400, "변경할 이미지를 등록해주세요."));
+      }
+      const userId = req.user?._id;
+
+      const user = await userModel.findById(userId);
+
+      //이미지를 가지고있다면.
+      if (avatar && user) {
+        if (user.avatar?.id) {
+          //가지고있는 이미지를 삭제
+          await cloudinary.v2.uploader.destroy(user?.avatar?.id);
+
+          const image = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "image",
+            width: 140,
+          });
+          user.avatar = {
+            id: image.public_id,
+            url: image.url,
+          };
+        } else {
+          //없으면 그냥 업로드
+          const image = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "image",
+            width: 140,
+          });
+          user.avatar = {
+            id: image.public_id,
+            url: image.url,
+          };
+        }
+      }
+      await user?.save();
+
+      await redis.set(userId, JSON.stringify(user));
+
+      res.status(200).json({
         success: true,
         user,
       });

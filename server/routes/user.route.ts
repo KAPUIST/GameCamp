@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  editUserAvatar,
   editUserInfo,
   editUserPassword,
   getUserInfo,
@@ -34,5 +35,7 @@ userRouter.get("/userinfo", isAuthenticated, getUserInfo);
 userRouter.put("/edituserinfo", isAuthenticated, editUserInfo);
 //유저 비밀번호 수정
 userRouter.put("/edituserpassword", isAuthenticated, editUserPassword);
+//유저 이미지 수정
+userRouter.put("/edituseravatar", isAuthenticated, editUserAvatar);
 
 export default userRouter;
