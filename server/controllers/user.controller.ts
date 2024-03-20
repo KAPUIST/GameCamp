@@ -388,16 +388,16 @@ export const editUserAvatar = AsyncErrorHandler(
 
       //이미지를 가지고있다면.
       if (avatar && user) {
-        if (user.avatar?.id) {
+        if (user.avatar?.public_id) {
           //가지고있는 이미지를 삭제
-          await cloudinary.v2.uploader.destroy(user?.avatar?.id);
+          await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
 
           const image = await cloudinary.v2.uploader.upload(avatar, {
             folder: "image",
             width: 140,
           });
           user.avatar = {
-            id: image.public_id,
+            public_id: image.public_id,
             url: image.url,
           };
         } else {
@@ -407,7 +407,7 @@ export const editUserAvatar = AsyncErrorHandler(
             width: 140,
           });
           user.avatar = {
-            id: image.public_id,
+            public_id: image.public_id,
             url: image.url,
           };
         }

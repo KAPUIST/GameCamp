@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 require("dotenv").config();
 import { CustomErrorHandler } from "./middleware/error";
 import userRouter from "./routes/user.route";
+import courseRoute from "./routes/course.route";
 import morgan from "morgan";
 
 process.env.NODE_ENV =
@@ -35,6 +36,7 @@ app.use(
 
 //라우터
 app.use("/api/v1", userRouter);
+app.use("/api/v1", courseRoute);
 
 //Error Hanler
 app.use(CustomErrorHandler);

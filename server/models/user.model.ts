@@ -12,7 +12,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   avatar: {
-    id: string;
+    public_id: string;
     url: string;
   };
   role: string;
@@ -47,7 +47,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       select: false,
     }, //프로필 사진
     avatar: {
-      id: String,
+      public_id: String,
       url: String,
     },
     //권한관리
