@@ -7,6 +7,8 @@ import { CustomErrorHandler } from "./middleware/error";
 import userRouter from "./routes/user.route";
 import courseRoute from "./routes/course.route";
 import morgan from "morgan";
+import orderRouter from "./routes/order.route";
+import notificationRoute from "./routes/notification.route";
 
 process.env.NODE_ENV =
   process.env.NODE_ENV &&
@@ -37,6 +39,8 @@ app.use(
 //라우터
 app.use("/api/v1", userRouter);
 app.use("/api/v1", courseRoute);
+app.use("/api/v1", orderRouter);
+app.use("/api/v1", notificationRoute);
 
 //Error Hanler
 app.use(CustomErrorHandler);

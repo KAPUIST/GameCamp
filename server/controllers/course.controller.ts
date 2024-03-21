@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import path from "path";
 import ejs from "ejs";
 import sendMail from "../utils/mail";
+import NotificationModel from "../models/notification.model";
 
 interface IAddQuestion {
   question: string;
@@ -209,6 +210,11 @@ export const addQuestion = AsyncErrorHandler(
 
       courseContent.questions.push(newQuestion);
 
+      await NotificationModel.create({
+        user: req.user?._id,
+        title: "새로운 질문이 등록되었습니다.",
+        message: `${courseContent.title} 해당코스에 새로운 질문이 등록되었습니다.`,
+      });
       await course?.save();
 
       res.status(200).json({
@@ -256,12 +262,18 @@ export const answerQuestion = AsyncErrorHandler(
       await course?.save();
 
       if (req.user?._id === question.user._id) {
+        //알림 생성
+        await NotificationModel.create({
+          user: req.user?._id,
+          title: "질문에 답글이 생겼습니다.",
+          message: `${courseContent.title}에 남긴 질문에 답글이 생겼습니다.`,
+        });
       } else {
         const data = {
           name: question.user.name,
           title: courseContent.title,
         };
-        console.log(data);
+
         const html = await ejs.renderFile(
           path.join(__dirname, "../mailHtml/question-reply.ejs"),
           data
