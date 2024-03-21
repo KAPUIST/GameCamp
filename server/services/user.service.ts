@@ -16,3 +16,12 @@ export const getUserId = async (id: string, res: Response) => {
   }
   //await userModel.findById(id);
 };
+
+//모든 유저 조회 -- 어드민
+export const getAllUsersService = async (res: Response) => {
+  const users = await userModel.find().sort({ createdAt: -1 });
+  res.status(200).json({
+    success: true,
+    users,
+  });
+};

@@ -1,9 +1,20 @@
 import express from "express";
-import { isAuthenticated } from "../middleware/auth";
-import { createOrder } from "../controllers/order.controller";
+import { isAuthenticated, validateUserRole } from "../middleware/auth";
+import {
+  createOrder,
+  getAllOrdersAdmin,
+} from "../controllers/order.controller";
 
 const orderRouter = express.Router();
 
-orderRouter.post("/createOrder", isAuthenticated, createOrder);
+//주문생성
+orderRouter.post("/orders", isAuthenticated, createOrder);
 
+//모든주문 가져오기 -- 어드민
+orderRouter.get(
+  "/admin/orders",
+  isAuthenticated,
+  validateUserRole("admin"),
+  getAllOrdersAdmin
+);
 export default orderRouter;

@@ -12,7 +12,7 @@ import {
   refreshTokenOptions,
 } from "../utils/jwt";
 import { redis } from "../utils/redis";
-import { getUserId } from "../services/user.service";
+import { getAllUsersService, getUserId } from "../services/user.service";
 import cloudinary from "cloudinary";
 require("dotenv").config();
 
@@ -422,6 +422,16 @@ export const editUserAvatar = AsyncErrorHandler(
       });
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+//모든유저 조회 -- 어드민
+export const getAllUsersAdmin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getAllUsersService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
     }
   }
 );

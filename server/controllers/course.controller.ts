@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import ErrorHandler from "../utils/errorHandler";
 import { AsyncErrorHandler } from "../middleware/asyncErrorHandler";
 import cloudinary from "cloudinary";
-import { createCourseData } from "../services/course.service";
+import {
+  createCourseData,
+  getAllCourseService,
+} from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
 import mongoose from "mongoose";
@@ -185,6 +188,7 @@ export const getCourseByUser = AsyncErrorHandler(
 //질문 등록하기
 export const addQuestion = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     try {
       const { question, courseId, contentId }: IAddQuestion = req.body;
 
@@ -356,6 +360,7 @@ export const addReview = AsyncErrorHandler(
 export const addReviewReply = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log(1);
       const { comment, courseId, reviewId } = req.body as IAddReviewReply;
 
       const course = await CourseModel.findById(courseId);
@@ -384,6 +389,18 @@ export const addReviewReply = AsyncErrorHandler(
         success: true,
         course,
       });
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//모든 코스 조회 -- 어드민
+
+export const getAllCoursesAdmin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getAllCourseService(res);
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }

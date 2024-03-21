@@ -7,38 +7,58 @@ import {
   createCourse,
   editCourse,
   getAllCourses,
+  getAllCoursesAdmin,
   getCourseByUser,
   getSingleCourse,
 } from "../controllers/course.controller";
 import { isAuthenticated, validateUserRole } from "../middleware/auth";
 const courseRoute = express.Router();
 
+//코스생성
 courseRoute.post(
-  "/createCourse",
+  "/courses",
   isAuthenticated,
   validateUserRole("admin"),
   createCourse
 );
+//코스 수정
 courseRoute.put(
-  "/editCourse/:id",
+  "/courses/:id/edit",
   isAuthenticated,
   validateUserRole("admin"),
   editCourse
 );
-courseRoute.get("/getCourse/:id", getSingleCourse);
-courseRoute.get("/getAllCourse", getAllCourses);
+//단일코스 가져오기
+courseRoute.get("/courses/:id", getSingleCourse);
 
-courseRoute.get("/getCourseContent/:id", isAuthenticated, getCourseByUser);
+//모든코스 가져오기
+courseRoute.get("/courses", getAllCourses);
 
-courseRoute.put("/addQuestion", isAuthenticated, addQuestion);
+// 사용자별 코스 내용 가져오기
+courseRoute.get("/courses/user/:id", isAuthenticated, getCourseByUser);
 
-courseRoute.put("/addQuestionAnswer", isAuthenticated, answerQuestion);
-courseRoute.put("/addReview/:id", isAuthenticated, addReview);
+//질문 추가 하기
+courseRoute.put("/courses/question", isAuthenticated, addQuestion);
+
+//질문에 대한 답변 추가하기
+courseRoute.put("/courses/answer", isAuthenticated, answerQuestion);
+
+//리뷰 추가하기
+courseRoute.put("/courses/review/:id", isAuthenticated, addReview);
+
+//리뷰에 답글추가
 courseRoute.put(
-  "/addReviewReply",
+  "/courses/reply/review",
   isAuthenticated,
   validateUserRole("admin"),
   addReviewReply
 );
 
+//모든 코스 가져오기 --어드민 전용
+courseRoute.get(
+  "/admin/courses",
+  isAuthenticated,
+  validateUserRole("admin"),
+  getAllCoursesAdmin
+);
 export default courseRoute;

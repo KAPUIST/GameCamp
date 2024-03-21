@@ -6,14 +6,16 @@ import {
 } from "../controllers/notification.controller";
 const notificationRoute = express.Router();
 
+//모든알림 가져오기
 notificationRoute.get(
-  "/getAllNotification",
+  "/admin/notifications",
   isAuthenticated,
   validateUserRole("admin"),
   getNotification
 );
+//알림 수정하기
 notificationRoute.put(
-  "/editNotification/:id",
+  "/admin/notifications/:id",
   isAuthenticated,
   validateUserRole("admin"),
   editNotification

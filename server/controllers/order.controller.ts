@@ -9,7 +9,10 @@ import path from "path";
 import ejs from "ejs";
 import sendMail from "../utils/mail";
 import NotificationModel from "../models/notification.model";
-import { createOrderService } from "../services/order.service";
+import {
+  createOrderService,
+  getAllOrdersService,
+} from "../services/order.service";
 
 // 주문 생성
 export const createOrder = AsyncErrorHandler(
@@ -82,6 +85,17 @@ export const createOrder = AsyncErrorHandler(
       await course.save();
 
       createOrderService(data, res, next);
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//모든 주문 조회 -- 어드민
+export const getAllOrdersAdmin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getAllOrdersService(res);
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }
