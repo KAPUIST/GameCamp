@@ -17,30 +17,30 @@ import { isAuthenticated, validateUserRole } from "../middleware/auth";
 const userRouter = express.Router();
 
 //회원가입
-userRouter.post("/register", registerUser);
+userRouter.post("/users/register", registerUser);
 //이메일인증
-userRouter.post("/verificationuser", verificationUser);
+userRouter.post("/users/verification", verificationUser);
 //로그인
-userRouter.post("/login", loginUser);
+userRouter.post("/users/login", loginUser);
 //로그아웃
-userRouter.get("/logout", isAuthenticated, logoutUser);
+userRouter.get("/users/logout", isAuthenticated, logoutUser);
 
 //소셜 로그인
-userRouter.post("/sociallogin", socialLogin);
+userRouter.post("/users/sociallogin", socialLogin);
 
 //유저 토큰업데이트
-userRouter.get("/refreshtoken", updateAccessToken);
+userRouter.get("/users/token", updateAccessToken);
 //유저 정보 조회
-userRouter.get("/userinfo", isAuthenticated, getUserInfo);
+userRouter.get("/users/information", isAuthenticated, getUserInfo);
 //유저 정보 수정
-userRouter.put("/edituserinfo", isAuthenticated, editUserInfo);
+userRouter.put("/users/information", isAuthenticated, editUserInfo);
 //유저 비밀번호 수정
-userRouter.put("/edituserpassword", isAuthenticated, editUserPassword);
+userRouter.put("/users/password", isAuthenticated, editUserPassword);
 //유저 이미지 수정
-userRouter.put("/edituseravatar", isAuthenticated, editUserAvatar);
+userRouter.put("/users/avatar", isAuthenticated, editUserAvatar);
 //모든유저 가져오기 -- 어드민
 userRouter.get(
-  "/getAllUsersAdmin",
+  "/admin/users",
   isAuthenticated,
   validateUserRole("admin"),
   getAllUsersAdmin

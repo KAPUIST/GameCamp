@@ -188,6 +188,7 @@ export const getCourseByUser = AsyncErrorHandler(
 //질문 등록하기
 export const addQuestion = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     try {
       const { question, courseId, contentId }: IAddQuestion = req.body;
 
@@ -359,6 +360,7 @@ export const addReview = AsyncErrorHandler(
 export const addReviewReply = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log(1);
       const { comment, courseId, reviewId } = req.body as IAddReviewReply;
 
       const course = await CourseModel.findById(courseId);
