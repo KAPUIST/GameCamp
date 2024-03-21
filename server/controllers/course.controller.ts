@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import ErrorHandler from "../utils/errorHandler";
 import { AsyncErrorHandler } from "../middleware/asyncErrorHandler";
 import cloudinary from "cloudinary";
-import { createCourseData } from "../services/course.service";
+import {
+  createCourseData,
+  getAllCourseService,
+} from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
 import mongoose from "mongoose";
@@ -384,6 +387,18 @@ export const addReviewReply = AsyncErrorHandler(
         success: true,
         course,
       });
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//모든 코스 조회 -- 어드민
+
+export const getAllCoursesAdmin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getAllCourseService(res);
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }

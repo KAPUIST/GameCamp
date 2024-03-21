@@ -11,3 +11,12 @@ export const createCourseData = AsyncErrorHandler(
     });
   }
 );
+
+//모든 코스 조회 -- 어드민
+export const getAllCourseService = async (res: Response) => {
+  const courses = await CourseModel.find().sort({ createdAt: -1 });
+  res.status(200).json({
+    success: true,
+    courses,
+  });
+};

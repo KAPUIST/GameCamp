@@ -3,6 +3,7 @@ import {
   editUserAvatar,
   editUserInfo,
   editUserPassword,
+  getAllUsersAdmin,
   getUserInfo,
   loginUser,
   logoutUser,
@@ -37,5 +38,11 @@ userRouter.put("/edituserinfo", isAuthenticated, editUserInfo);
 userRouter.put("/edituserpassword", isAuthenticated, editUserPassword);
 //유저 이미지 수정
 userRouter.put("/edituseravatar", isAuthenticated, editUserAvatar);
-
+//모든유저 가져오기 -- 어드민
+userRouter.get(
+  "/getAllUsersAdmin",
+  isAuthenticated,
+  validateUserRole("admin"),
+  getAllUsersAdmin
+);
 export default userRouter;

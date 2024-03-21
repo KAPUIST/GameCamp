@@ -7,6 +7,7 @@ import {
   createCourse,
   editCourse,
   getAllCourses,
+  getAllCoursesAdmin,
   getCourseByUser,
   getSingleCourse,
 } from "../controllers/course.controller";
@@ -40,5 +41,10 @@ courseRoute.put(
   validateUserRole("admin"),
   addReviewReply
 );
-
+courseRoute.get(
+  "/getAllCourseAdmin",
+  isAuthenticated,
+  validateUserRole("admin"),
+  getAllCoursesAdmin
+);
 export default courseRoute;
