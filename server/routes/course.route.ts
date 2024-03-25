@@ -5,6 +5,7 @@ import {
   addReviewReply,
   answerQuestion,
   createCourse,
+  delCourse,
   editCourse,
   getAllCourses,
   getAllCoursesAdmin,
@@ -60,5 +61,13 @@ courseRoute.get(
   isAuthenticated,
   validateUserRole("admin"),
   getAllCoursesAdmin
+);
+
+//코스 삭제하기 -- 어드민
+courseRoute.delete(
+  "/admin/course/:id",
+  isAuthenticated,
+  validateUserRole("admin"),
+  delCourse
 );
 export default courseRoute;

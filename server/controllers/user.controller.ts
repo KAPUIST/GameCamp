@@ -12,7 +12,11 @@ import {
   refreshTokenOptions,
 } from "../utils/jwt";
 import { redis } from "../utils/redis";
-import { getAllUsersService, getUserId } from "../services/user.service";
+import {
+  editUserRoleService,
+  getAllUsersService,
+  getUserId,
+} from "../services/user.service";
 import cloudinary from "cloudinary";
 require("dotenv").config();
 
@@ -132,6 +136,7 @@ export const createToken = (user: any): IToken => {
 export const verificationUser = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      //4자리 코드
       const { verification_code, verification_token } =
         req.body as IVerificationRequest;
 
@@ -187,7 +192,7 @@ export const updateAccessToken = AsyncErrorHandler(
 
       const userInRedis = await redis.get(decodeRefreshToken.id);
       if (!userInRedis) {
-        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+        return next(new ErrorHandler(400, "재 로그인이 필요합니다."));
       }
       //유저 정보가 세션에 존재한다면
       //토큰을 재발급.
@@ -207,6 +212,8 @@ export const updateAccessToken = AsyncErrorHandler(
       // req.user = userData;
       res.cookie("access_token", accessToken, accessTokenOptions);
       res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      await redis.set(userData._id, JSON.stringify(userData), "EX", 432000); //5일후에 만료
 
       res.status(200).json({
         success: true,
@@ -430,6 +437,44 @@ export const getAllUsersAdmin = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getAllUsersService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//유저권한 변경 -- 어드민
+export const editUsersRole = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id, role } = req.body;
+      editUserRoleService(res, id, role);
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//유저 삭제 기능 -- 어드민
+export const delUser = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      const user = await userModel.findById(id);
+
+      if (!user) {
+        return next(new ErrorHandler(404, "유저를 찾을수없습니다."));
+      }
+
+      await user.deleteOne({ id });
+
+      await redis.del(id);
+
+      res.status(200).json({
+        success: true,
+        message: "유저가 성공적으로 삭제 되었습니다.",
+      });
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }

@@ -26,7 +26,7 @@ export const isAuthenticated = AsyncErrorHandler(
     const user = await redis.get(decodedToken.id);
 
     if (!user) {
-      return next(new ErrorHandler(400, "유저를 찾을수없습니다."));
+      return next(new ErrorHandler(400, "로그인이 필요합니다."));
     }
 
     req.user = JSON.parse(user);
