@@ -9,7 +9,8 @@ import courseRoute from "./routes/course.route";
 import morgan from "morgan";
 import orderRouter from "./routes/order.route";
 import notificationRoute from "./routes/notification.route";
-
+import analyticsRouter from "./routes/analytics.route";
+import layoutRouter from "./routes/layout.route";
 process.env.NODE_ENV =
   process.env.NODE_ENV &&
   process.env.NODE_ENV.trim().toLowerCase() == "production"
@@ -42,6 +43,10 @@ app.use("/api/v1", courseRoute);
 app.use("/api/v1", orderRouter);
 app.use("/api/v1", notificationRoute);
 
+//admin  전용 페이지를 만들어서 띄울까말가 하고있긴함
+app.use("/api/v1", analyticsRouter);
+//레이아웃 라우터
+app.use("/api/v1", layoutRouter);
 //Error Hanler
 app.use(CustomErrorHandler);
 

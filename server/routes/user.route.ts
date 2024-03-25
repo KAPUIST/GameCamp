@@ -1,8 +1,10 @@
 import express from "express";
 import {
+  delUser,
   editUserAvatar,
   editUserInfo,
   editUserPassword,
+  editUsersRole,
   getAllUsersAdmin,
   getUserInfo,
   loginUser,
@@ -44,5 +46,19 @@ userRouter.get(
   isAuthenticated,
   validateUserRole("admin"),
   getAllUsersAdmin
+);
+//유저 권한 변경하기 -- 어드민
+userRouter.put(
+  "/admin/role",
+  isAuthenticated,
+  validateUserRole("admin"),
+  editUsersRole
+);
+//유저 삭제하기 -- 어드민
+userRouter.delete(
+  "/admin/user/:id",
+  isAuthenticated,
+  validateUserRole("admin"),
+  delUser
 );
 export default userRouter;

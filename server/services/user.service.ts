@@ -25,3 +25,17 @@ export const getAllUsersService = async (res: Response) => {
     users,
   });
 };
+
+//유저 권한 변경
+export const editUserRoleService = async (
+  res: Response,
+  id: string,
+  role: string
+) => {
+  const user = await userModel.findByIdAndUpdate(id, { role }, { new: true });
+
+  res.status(201).json({
+    success: true,
+    user,
+  });
+};

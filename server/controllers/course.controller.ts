@@ -13,6 +13,7 @@ import path from "path";
 import ejs from "ejs";
 import sendMail from "../utils/mail";
 import NotificationModel from "../models/notification.model";
+import { last12MonthsData } from "../utils/analytics";
 
 interface IAddQuestion {
   question: string;
@@ -117,7 +118,7 @@ export const getSingleCourse = AsyncErrorHandler(
           "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
         );
 
-        await redis.set(coursId, JSON.stringify(course));
+        await redis.set(coursId, JSON.stringify(course), "EX", 432000); //5일뒤에 만료
         res.status(200).json({
           success: true,
           course,
@@ -401,6 +402,32 @@ export const getAllCoursesAdmin = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getAllCourseService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//코스 삭제하기 --어드민
+export const delCourse = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      const course = await CourseModel.findById(id);
+
+      if (!course) {
+        return next(new ErrorHandler(404, "코스를 찾을수없습니다."));
+      }
+
+      await course.deleteOne({ id });
+
+      await redis.del(id);
+
+      res.status(200).json({
+        success: true,
+        message: "코스가 성공적으로 삭제 되었습니다.",
+      });
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }
