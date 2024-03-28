@@ -60,6 +60,7 @@ export const registerUser = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, email, password } = req.body as IRegister;
+
       if (password.length < 8) {
         return next(new ErrorHandler(400, "비밀번호 길이는 최소 8자리입니다."));
       }
@@ -139,6 +140,7 @@ export const verificationUser = AsyncErrorHandler(
       //4자리 코드
       const { verification_code, verification_token } =
         req.body as IVerificationRequest;
+      console.log(verification_code, verification_token);
 
       const newUser: { user: IUser; verificationCode: string } = jwt.verify(
         verification_token,
