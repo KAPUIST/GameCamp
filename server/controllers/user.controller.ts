@@ -287,7 +287,9 @@ export const socialLogin = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, name, avatar } = req.body as ISocialLogin;
+      console.log(avatar);
       const user = await userModel.findOne({ email });
+
       if (!user) {
         const newUser = await userModel.create({ email, name, avatar });
         createLoginToken(newUser, 200, res);
@@ -385,13 +387,11 @@ export const editUserPassword = AsyncErrorHandler(
 export const editUserAvatar = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { avatar } = req.body;
-      if (!avatar) {
-        return next(new ErrorHandler(400, "변경할 이미지를 등록해주세요."));
-      }
+      const { avatar } = req.body as IEditUserAvatar;
+
       const userId = req.user?._id;
 
-      const user = await userModel.findById(userId);
+      const user = await userModel.findById(userId).select("+password");
 
       //이미지를 가지고있다면.
       if (avatar && user) {
@@ -399,23 +399,26 @@ export const editUserAvatar = AsyncErrorHandler(
           //가지고있는 이미지를 삭제
           await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
 
+          console.log("1");
           const image = await cloudinary.v2.uploader.upload(avatar, {
-            folder: "image",
-            width: 140,
+            folder: "images",
+            width: 150,
           });
           user.avatar = {
             public_id: image.public_id,
-            url: image.url,
+            url: image.secure_url,
           };
         } else {
+          console.log("2");
           //없으면 그냥 업로드
           const image = await cloudinary.v2.uploader.upload(avatar, {
-            folder: "image",
-            width: 140,
+            folder: "images",
+            width: 150,
           });
+          console.log("3");
           user.avatar = {
             public_id: image.public_id,
-            url: image.url,
+            url: image.secure_url,
           };
         }
       }

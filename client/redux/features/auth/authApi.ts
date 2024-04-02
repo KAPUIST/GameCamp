@@ -43,7 +43,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     login: builder.mutation({
       query: ({ email, password }) => ({
-        url: "login",
+        url: "users/login",
         method: "POST",
         body: {
           email,
@@ -67,7 +67,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     socialAuth: builder.mutation({
       query: ({ email, name, avatar }) => ({
-        url: "social-auth",
+        url: "users/sociallogin",
         method: "POST",
         body: {
           email,
@@ -92,7 +92,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
     logOut: builder.query({
       query: () => ({
-        url: "logout",
+        url: "users/logout",
         method: "GET",
         credentials: "include" as const,
       }),
