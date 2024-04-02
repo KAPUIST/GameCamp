@@ -59,7 +59,6 @@ export const createOrder = AsyncErrorHandler(
       );
       try {
         if (user) {
-          console.log(user);
           await sendMail({
             email: user.email,
             subject: "주문 확인서",

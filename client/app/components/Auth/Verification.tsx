@@ -21,7 +21,6 @@ const Verification: FC<Props> = ({ setRoute }) => {
   const [invalidError, setInvalidError] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log(token);
     if (isSuccess) {
       toast.success("계정이 활성화 되었습니다.");
       setRoute("Login");
@@ -47,13 +46,15 @@ const Verification: FC<Props> = ({ setRoute }) => {
   //메일 인증코드 제출시 4자리가 아니면 오류를 리턴하는 함수입니다.
   const verificationHandler = async () => {
     const verificationNumber = Object.values(verifyNumber).join("");
+
     if (verificationNumber.length !== 4) {
       setInvalidError(true);
       return;
     }
+
     await activation({
-      activationToken: token,
-      activationCode: verificationNumber,
+      verification_token: token,
+      verification_code: verificationNumber,
     });
   };
   const [verifyNumber, setVerifyNumber] = useState<VerifyNumber>({

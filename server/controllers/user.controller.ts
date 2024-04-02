@@ -137,10 +137,8 @@ export const createToken = (user: any): IToken => {
 export const verificationUser = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      //4자리 코드
       const { verification_code, verification_token } =
         req.body as IVerificationRequest;
-      console.log(verification_code, verification_token);
 
       const newUser: { user: IUser; verificationCode: string } = jwt.verify(
         verification_token,
@@ -322,7 +320,7 @@ export const editUserInfo = AsyncErrorHandler(
       const { email, name } = req.body as IEditUserInfo;
 
       const userId = req.user?._id;
-      console.log(userId);
+
       const user = await userModel.findById(userId);
 
       if (email && user) {

@@ -3,7 +3,7 @@ import { userLoggedIn, userLoggedOut, userRegistration } from "./authSlice";
 
 type RegistrationResponse = {
   message: string;
-  token: string;
+  verificationToken: string;
 };
 
 type RegistrationData = {};
@@ -20,10 +20,10 @@ export const authApi = apiSlice.injectEndpoints({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
-          console.log("1", result);
+
           dispatch(
             userRegistration({
-              token: result.data.token,
+              verificationToken: result.data.verificationToken,
             })
           );
         } catch (error: any) {
