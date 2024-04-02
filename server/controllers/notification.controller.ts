@@ -54,7 +54,6 @@ export const editNotification = AsyncErrorHandler(
 cron.schedule("0 0 0 * * *", async () => {
   const oneDayAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
 
-  console.log(oneDayAgo);
   await NotificationModel.deleteMany({
     status: "read",
     createdAt: { $lt: oneDayAgo },

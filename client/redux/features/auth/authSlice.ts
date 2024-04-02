@@ -9,8 +9,11 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    userRegistration: (state, action: PayloadAction<{ token: string }>) => {
-      state.token = action.payload.token;
+    userRegistration: (
+      state,
+      action: PayloadAction<{ verificationToken: string }>
+    ) => {
+      state.token = action.payload.verificationToken;
     },
     userLoggedIn: (
       state,
