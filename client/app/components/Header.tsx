@@ -32,10 +32,13 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   const { data } = useSession();
   const [socialAuth, { isSuccess, error }] = useSocialAuthMutation();
   const [logout, setLogout] = useState(false);
-  const {} = useLogOutQuery(undefined, {
-    skip: !logout ? true : false,
-  });
+  //로그아웃 문제
+  // const {} = useLogOutQuery(undefined, {
+  //   skip: !logout ? true : false,
+  // });
   useEffect(() => {
+    console.log(user);
+    console.log(data);
     if (!user) {
       if (data) {
         socialAuth({

@@ -16,7 +16,7 @@ const Page: FC<Props> = (props) => {
     <div>
       <Protected>
         <Heading
-          title={`${user.name} 프로필`}
+          title={`${user.name} 프로필 - Gamecamp`}
           description="게임배우기"
           keywords="Valorant,Riot"
         />

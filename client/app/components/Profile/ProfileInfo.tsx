@@ -3,8 +3,12 @@ import React, { FC, useEffect, useState } from "react";
 import { styles } from "../../../app/styles/style";
 import { AiOutlineCamera } from "react-icons/ai";
 import avatarIcon from "../../../public/assets/avatar.png";
-import { useUpdateAvatarMutation } from "@/redux/features/user/userApi";
+import {
+  useEditProfileMutation,
+  useUpdateAvatarMutation,
+} from "@/redux/features/user/userApi";
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
+import toast from "react-hot-toast";
 type Props = {
   avatar: string | null;
   user: any;
@@ -13,6 +17,8 @@ type Props = {
 const ProfileInfo: FC<Props> = ({ avatar, user }) => {
   const [name, setName] = useState(user && user.name);
   const [updateAvatar, { isSuccess, error }] = useUpdateAvatarMutation();
+  const [editUserProfile, { isSuccess: success, error: editError }] =
+    useEditProfileMutation();
   const [loadUser, setLoadUser] = useState(false);
   const {} = useLoadUserQuery(undefined, { skip: loadUser ? false : true });
 
@@ -30,15 +36,24 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
   };
 
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess || success) {
       setLoadUser(true);
     }
-    if (error) {
+    if (error || editError) {
       console.log(error);
     }
-  }, [isSuccess, error]);
+    if (isSuccess || success) {
+      toast.success("프로필이 업데이트 되었습니다.");
+    }
+  }, [isSuccess, error, success, editError]);
   const handleSubmit = async (e: any) => {
-    console.log("zzz");
+    e.preventDefault();
+
+    if (name !== "") {
+      editUserProfile({
+        name: name,
+      });
+    }
   };
   return (
     <>
@@ -60,8 +75,11 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
             accept="image/png,image/jpg,image/jpeg,image/webp"
           />
           <label htmlFor="avatar">
-            <div className="w-[30px] h-[30px] bg-slate-900 rounded-full absolute bottom-2 right-2 flex items-center justify-center cursor-pointer">
-              <AiOutlineCamera size={20} className="z-1" />
+            <div className="w-[30px] h-[30px] bg-slate-900  rounded-full absolute bottom-2 right-2 flex items-center justify-center cursor-pointer">
+              <AiOutlineCamera
+                size={20}
+                className="z-1 dark:text-white text-black"
+              />
             </div>
           </label>
         </div>
@@ -72,7 +90,9 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
         <form onSubmit={handleSubmit}>
           <div className="800px:w-[50%] m-auto block pb-4">
             <div className="w-[100%]">
-              <label className="block pb-2">이름</label>
+              <label className="block pb-2 text-black dark:text-[#fff]">
+                이름
+              </label>
               <input
                 type="text"
                 className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
@@ -82,7 +102,9 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
               />
             </div>
             <div className="w-[100%] pt-2">
-              <label className="block pb-2">이메일</label>
+              <label className="block pb-2 text-black dark:text-[#fff]">
+                이메일
+              </label>
               <input
                 type="text"
                 readOnly
@@ -92,7 +114,7 @@ const ProfileInfo: FC<Props> = ({ avatar, user }) => {
               />
             </div>
             <input
-              className={`w-full 800px:w-[250px] h-[40px] border border-[#37a39a] text-center dark:text-[#fff] text-black rounded-[3px] mt-8 cursor-pointer`}
+              className={`w-[95%] h-[40px]  border border-[#37a39a] text-center dark:text-[#fff] text-black rounded-[3px] mt-8 cursor-pointer`}
               required
               value="업데이트"
               type="submit"
