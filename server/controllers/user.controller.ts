@@ -48,7 +48,7 @@ interface IEditUserInfo {
   name?: string;
 }
 interface IEditUserPassword {
-  pastPassword: string;
+  oldPassword: string;
   newPassword: string;
 }
 interface IEditUserAvatar {
@@ -319,19 +319,12 @@ export const getUserInfo = AsyncErrorHandler(
 export const editUserInfo = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, name } = req.body as IEditUserInfo;
+      const { name } = req.body as IEditUserInfo;
 
       const userId = req.user?._id;
 
       const user = await userModel.findById(userId);
 
-      if (email && user) {
-        const findDuplicatedeMail = await userModel.findOne({ email });
-        if (findDuplicatedeMail) {
-          return next(new ErrorHandler(400, "이미 존재하는 이메일 입니다."));
-        }
-        user.email = email;
-      }
       if (name && user) {
         user.name = name;
       }
@@ -350,9 +343,9 @@ export const editUserInfo = AsyncErrorHandler(
 export const editUserPassword = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { pastPassword, newPassword } = req.body as IEditUserPassword;
+      const { oldPassword, newPassword } = req.body as IEditUserPassword;
 
-      if (!pastPassword || !newPassword) {
+      if (!oldPassword || !newPassword) {
         return next(
           new ErrorHandler(400, "비밀번호 항목을 모두 입력해주세요.")
         );
@@ -362,9 +355,9 @@ export const editUserPassword = AsyncErrorHandler(
         return next(new ErrorHandler(400, "유저를 찾을수 없습니다."));
       }
 
-      const isPastPasswordCorrect = await user?.comparePassword(pastPassword);
+      const isoldPasswordCorrect = await user?.comparePassword(oldPassword);
 
-      if (!isPastPasswordCorrect) {
+      if (!isoldPasswordCorrect) {
         return next(new ErrorHandler(400, "비밀번호가 일치하지 않습니다."));
       }
       user.password = newPassword;

@@ -87,13 +87,13 @@ const Login: FC<Props> = ({ setRoute, setOpen }) => {
           />
           {!show ? (
             <AiOutlineEyeInvisible
-              className="absolute bottom-3 right-2 z-1 cursor-pointer"
+              className="absolute bottom-3 right-2 z-1 cursor-pointer text-black dark:text-white"
               size={20}
               onClick={() => setShow(true)}
             />
           ) : (
             <AiOutlineEye
-              className="absolute bottom-3 right-2 z-1 cursor-pointer"
+              className="absolute bottom-3 right-2 z-1 cursor-pointer text-black dark:text-white"
               size={20}
               onClick={() => setShow(false)}
             />
@@ -121,7 +121,7 @@ const Login: FC<Props> = ({ setRoute, setOpen }) => {
             onClick={() => signIn("github")}
           />
         </div>
-        <h5 className="text-center pt-4 font-Poppins text-[14px]">
+        <h5 className="text-center pt-4 font-Poppins text-[14px]  text-black dark:text-white">
           계정이 없으신가요?{" "}
           <span
             className="text-[#2190ff] pl-1 cursor-pointer"
