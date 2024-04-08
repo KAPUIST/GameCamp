@@ -22,18 +22,20 @@ const josefin = Josefin_Sans({
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
       <body
-        className={`${poppins.variable} ${josefin.variable} bg-white bg-no-repeat dark:bg-gradient-to-b dark:from-gray-900 dark:to-black duration-300`}
+        className={`${poppins.variable} ${josefin.variable} !bg-white bg-no-repeat dark:bg-gradient-to-b dark:from-gray-900 dark:to-black duration-300`}
       >
         <Providers>
           <SessionProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <Custom>{children}</Custom>
+              <Custom>
+                <div>{children}</div>
+              </Custom>
               <Toaster position="top-center" reverseOrder={false} />
             </ThemeProvider>
           </SessionProvider>
@@ -45,5 +47,5 @@ export default function RootLayout({
 
 const Custom: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isLoading } = useLoadUserQuery({});
-  return <>{isLoading ? <Loader /> : <>{children}</>}</>;
+  return <>{isLoading ? <Loader /> : <div>{children}</div>}</>;
 };

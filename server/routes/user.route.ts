@@ -12,6 +12,7 @@ import {
   registerUser,
   socialLogin,
   updateAccessToken,
+  updateAccessToken2,
   verificationUser,
 } from "../controllers/user.controller";
 import { isAuthenticated, validateUserRole } from "../middleware/auth";
@@ -27,11 +28,11 @@ userRouter.post("/users/login", loginUser);
 //로그아웃
 userRouter.get("/users/logout", isAuthenticated, logoutUser);
 
+//토큰업데이트
+userRouter.get("/users/token", updateAccessToken2);
 //소셜 로그인
 userRouter.post("/users/sociallogin", socialLogin);
 
-//유저 토큰업데이트
-userRouter.get("/users/token", updateAccessToken);
 //유저 정보 조회
 userRouter.get("/users/information", isAuthenticated, getUserInfo);
 //유저 정보 수정
