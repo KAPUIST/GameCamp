@@ -11,12 +11,14 @@ const layoutRouter = express.Router();
 layoutRouter.get("/layout", getLayoutByType);
 layoutRouter.post(
   "/admin/layout",
+
   isAuthenticated,
   validateUserRole("admin"),
   createLayout
 );
 layoutRouter.put(
   "/admin/layout",
+
   isAuthenticated,
   validateUserRole("admin"),
   editLayout

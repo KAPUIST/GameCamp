@@ -13,6 +13,7 @@ orderRouter.post("/orders", isAuthenticated, createOrder);
 //모든주문 가져오기 -- 어드민
 orderRouter.get(
   "/admin/orders",
+
   isAuthenticated,
   validateUserRole("admin"),
   getAllOrdersAdmin

@@ -179,6 +179,55 @@ export const updateAccessToken = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       //리프레쉬 토큰먼저
+
+      const refresh_token = req.cookies.refresh_token;
+      //토큰 해석
+      const decodeRefreshToken = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
+
+      if (!decodeRefreshToken) {
+        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+      }
+
+      const userInRedis = await redis.get(decodeRefreshToken.id);
+      if (!userInRedis) {
+        return next(new ErrorHandler(400, "재 로그인이 필요합니다."));
+      }
+      //유저 정보가 세션에 존재한다면
+      //토큰을 재발급.
+      const userData = JSON.parse(userInRedis);
+
+      const accessToken = jwt.sign(
+        { id: userData._id },
+        process.env.ACCESS_TOKEN as string,
+        { expiresIn: "5m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: userData._id },
+        process.env.REFRESH_TOKEN as string,
+        { expiresIn: "1d" }
+      );
+
+      // req.user = userData;
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      await redis.set(userData._id, JSON.stringify(userData), "EX", 432000); //5일후에 만료
+
+      return next();
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+//엑세스토큰 업데이트 기능 임시 사용
+export const updateAccessToken2 = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      //리프레쉬 토큰먼저
+
       const refresh_token = req.cookies.refresh_token;
       //토큰 해석
       const decodeRefreshToken = jwt.verify(
@@ -217,7 +266,6 @@ export const updateAccessToken = AsyncErrorHandler(
 
       res.status(200).json({
         success: true,
-        accessToken,
       });
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
@@ -443,8 +491,17 @@ export const getAllUsersAdmin = AsyncErrorHandler(
 export const editUsersRole = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, role } = req.body;
-      editUserRoleService(res, id, role);
+      const { email, role } = req.body;
+      const isUserExist = await userModel.findOne({ email });
+      if (isUserExist) {
+        const id = isUserExist.id;
+        editUserRoleService(res, id, role);
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "유저를 찾을수없습니다.",
+        });
+      }
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }

@@ -41,14 +41,6 @@ input::-webkit-inner-spin-button {
   background: #32ae7e;
 }
 
-/* Firefox */
-input[type="number"] {
-  -moz-appearance: textfield;
-}
-body {
-  color: rgb(var(--foreground-rgb));
-}
-
 .text-gradient {
   background: linear-gradient(90deg, #3e7fd9 2.34%, #5c3bd6 100.78%);
   -webkit-background-clip: text;

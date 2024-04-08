@@ -7,17 +7,20 @@ import {
   createCourse,
   delCourse,
   editCourse,
+  generateVideoUrl,
   getAllCourses,
   getAllCoursesAdmin,
   getCourseByUser,
   getSingleCourse,
 } from "../controllers/course.controller";
 import { isAuthenticated, validateUserRole } from "../middleware/auth";
+
 const courseRoute = express.Router();
 
 //코스생성
 courseRoute.post(
   "/courses",
+
   isAuthenticated,
   validateUserRole("admin"),
   createCourse
@@ -36,16 +39,36 @@ courseRoute.get("/courses/:id", getSingleCourse);
 courseRoute.get("/courses", getAllCourses);
 
 // 사용자별 코스 내용 가져오기
-courseRoute.get("/courses/user/:id", isAuthenticated, getCourseByUser);
+courseRoute.get(
+  "/courses/user/:id",
+
+  isAuthenticated,
+  getCourseByUser
+);
 
 //질문 추가 하기
-courseRoute.put("/courses/question", isAuthenticated, addQuestion);
+courseRoute.put(
+  "/courses/question",
+
+  isAuthenticated,
+  addQuestion
+);
 
 //질문에 대한 답변 추가하기
-courseRoute.put("/courses/answer", isAuthenticated, answerQuestion);
+courseRoute.put(
+  "/courses/answer",
+
+  isAuthenticated,
+  answerQuestion
+);
 
 //리뷰 추가하기
-courseRoute.put("/courses/review/:id", isAuthenticated, addReview);
+courseRoute.put(
+  "/courses/review/:id",
+
+  isAuthenticated,
+  addReview
+);
 
 //리뷰에 답글추가
 courseRoute.put(
@@ -54,6 +77,8 @@ courseRoute.put(
   validateUserRole("admin"),
   addReviewReply
 );
+
+courseRoute.post("/getVdocipherOTP", generateVideoUrl);
 
 //모든 코스 가져오기 --어드민 전용
 courseRoute.get(

@@ -14,6 +14,7 @@ import ejs from "ejs";
 import sendMail from "../utils/mail";
 import NotificationModel from "../models/notification.model";
 import { last12MonthsData } from "../utils/analytics";
+import axios from "axios";
 
 interface IAddQuestion {
   question: string;
@@ -134,23 +135,14 @@ export const getSingleCourse = AsyncErrorHandler(
 export const getAllCourses = AsyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const isRedisExist = await redis.get("allCourses");
-      if (isRedisExist) {
-        const course = JSON.parse(isRedisExist);
-        res.status(200).json({
-          success: true,
-          course,
-        });
-      } else {
-        const courses = await CourseModel.find().select(
-          "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
-        );
-        await redis.set("allCourses", JSON.stringify(courses));
-        res.status(200).json({
-          success: true,
-          courses,
-        });
-      }
+      const courses = await CourseModel.find().select(
+        "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+      );
+
+      res.status(200).json({
+        success: true,
+        courses,
+      });
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }
@@ -426,6 +418,29 @@ export const delCourse = AsyncErrorHandler(
         success: true,
         message: "코스가 성공적으로 삭제 되었습니다.",
       });
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+export const generateVideoUrl = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { videoId } = req.body;
+      const response = await axios.post(
+        `https://dev.vdocipher.com/api/videos/${videoId}/otp`,
+        { ttl: 300 },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "aplication/json",
+            Authorization: `Apisecret ${process.env.VIDEO_CIPHER_API_SECRET}`,
+          },
+        }
+      );
+
+      res.json(response.data);
     } catch (error: any) {
       return next(new ErrorHandler(500, error.message));
     }
