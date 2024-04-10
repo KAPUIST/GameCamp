@@ -2,12 +2,22 @@ import { Request, Response, NextFunction } from "express";
 import userModel, { IUser } from "../models/user.model";
 import ErrorHandler from "../utils/errorHandler";
 import { AsyncErrorHandler } from "../middleware/asyncErrorHandler";
-import jwt, { Secret } from "jsonwebtoken";
+import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/mail";
-import { createLoginToken } from "../utils/jwt";
+import {
+  accessTokenOptions,
+  createLoginToken,
+  refreshTokenOptions,
+} from "../utils/jwt";
 import { redis } from "../utils/redis";
+import {
+  editUserRoleService,
+  getAllUsersService,
+  getUserId,
+} from "../services/user.service";
+import cloudinary from "cloudinary";
 require("dotenv").config();
 
 interface IRegister {
@@ -28,6 +38,22 @@ interface ILoginRequest {
   email: string;
   password: string;
 }
+interface ISocialLogin {
+  email: string;
+  name: string;
+  avatar: string;
+}
+interface IEditUserInfo {
+  email?: string;
+  name?: string;
+}
+interface IEditUserPassword {
+  oldPassword: string;
+  newPassword: string;
+}
+interface IEditUserAvatar {
+  avatar: string;
+}
 
 //유저 이메일 인증 컨트롤러
 export const registerUser = AsyncErrorHandler(
@@ -35,6 +61,9 @@ export const registerUser = AsyncErrorHandler(
     try {
       const { name, email, password } = req.body as IRegister;
 
+      if (password.length < 8) {
+        return next(new ErrorHandler(400, "비밀번호 길이는 최소 8자리입니다."));
+      }
       //이메일 중복 확인
       const isEmailDuplicated = await userModel.findOne({ email });
       if (isEmailDuplicated) {
@@ -145,6 +174,104 @@ export const verificationUser = AsyncErrorHandler(
     }
   }
 );
+//엑세스토큰 업데이트 기능
+export const updateAccessToken = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      //리프레쉬 토큰먼저
+
+      const refresh_token = req.cookies.refresh_token;
+      //토큰 해석
+      const decodeRefreshToken = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
+
+      if (!decodeRefreshToken) {
+        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+      }
+
+      const userInRedis = await redis.get(decodeRefreshToken.id);
+      if (!userInRedis) {
+        return next(new ErrorHandler(400, "재 로그인이 필요합니다."));
+      }
+      //유저 정보가 세션에 존재한다면
+      //토큰을 재발급.
+      const userData = JSON.parse(userInRedis);
+
+      const accessToken = jwt.sign(
+        { id: userData._id },
+        process.env.ACCESS_TOKEN as string,
+        { expiresIn: "5m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: userData._id },
+        process.env.REFRESH_TOKEN as string,
+        { expiresIn: "1d" }
+      );
+
+      // req.user = userData;
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      await redis.set(userData._id, JSON.stringify(userData), "EX", 432000); //5일후에 만료
+
+      return next();
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+//엑세스토큰 업데이트 기능 임시 사용
+export const updateAccessToken2 = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      //리프레쉬 토큰먼저
+
+      const refresh_token = req.cookies.refresh_token;
+      //토큰 해석
+      const decodeRefreshToken = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
+
+      if (!decodeRefreshToken) {
+        return next(new ErrorHandler(400, "토큰을 재발급할수 없습니다."));
+      }
+
+      const userInRedis = await redis.get(decodeRefreshToken.id);
+      if (!userInRedis) {
+        return next(new ErrorHandler(400, "재 로그인이 필요합니다."));
+      }
+      //유저 정보가 세션에 존재한다면
+      //토큰을 재발급.
+      const userData = JSON.parse(userInRedis);
+
+      const accessToken = jwt.sign(
+        { id: userData._id },
+        process.env.ACCESS_TOKEN as string,
+        { expiresIn: "5m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: userData._id },
+        process.env.REFRESH_TOKEN as string,
+        { expiresIn: "1d" }
+      );
+
+      // req.user = userData;
+      res.cookie("access_token", accessToken, accessTokenOptions);
+      res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+      await redis.set(userData._id, JSON.stringify(userData), "EX", 432000); //5일후에 만료
+
+      res.status(200).json({
+        success: true,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
 
 // 유저 로그인
 export const loginUser = AsyncErrorHandler(
@@ -199,6 +326,210 @@ export const logoutUser = AsyncErrorHandler(
       });
     } catch (error: any) {
       return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 소셜 로그인
+export const socialLogin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, name, avatar } = req.body as ISocialLogin;
+      console.log(avatar);
+      const user = await userModel.findOne({ email });
+
+      if (!user) {
+        const newUser = await userModel.create({ email, name, avatar });
+        createLoginToken(newUser, 200, res);
+      } else {
+        createLoginToken(user, 200, res);
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 id 조회
+export const getUserInfo = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?._id;
+
+      await getUserId(userId, res);
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 정보 수정 기능
+export const editUserInfo = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name } = req.body as IEditUserInfo;
+
+      const userId = req.user?._id;
+
+      const user = await userModel.findById(userId);
+
+      if (name && user) {
+        user.name = name;
+      }
+      await user?.save();
+      await redis.set(userId, JSON.stringify(user));
+      res.status(200).json({
+        success: true,
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+//유저 비밀번호 수정 기능
+export const editUserPassword = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { oldPassword, newPassword } = req.body as IEditUserPassword;
+
+      if (!oldPassword || !newPassword) {
+        return next(
+          new ErrorHandler(400, "비밀번호 항목을 모두 입력해주세요.")
+        );
+      }
+      const user = await userModel.findById(req.user?._id).select("+password");
+      if (user?.password === undefined) {
+        return next(new ErrorHandler(400, "유저를 찾을수 없습니다."));
+      }
+
+      const isoldPasswordCorrect = await user?.comparePassword(oldPassword);
+
+      if (!isoldPasswordCorrect) {
+        return next(new ErrorHandler(400, "비밀번호가 일치하지 않습니다."));
+      }
+      user.password = newPassword;
+
+      await user.save();
+
+      await redis.set(req.user?._id, JSON.stringify(user));
+
+      res.status(201).json({
+        success: true,
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+
+//유저 아바타 수정 기능
+export const editUserAvatar = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { avatar } = req.body as IEditUserAvatar;
+
+      const userId = req.user?._id;
+
+      const user = await userModel.findById(userId).select("+password");
+
+      //이미지를 가지고있다면.
+      if (avatar && user) {
+        if (user.avatar?.public_id) {
+          //가지고있는 이미지를 삭제
+          await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
+
+          console.log("1");
+          const image = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "images",
+            width: 150,
+          });
+          user.avatar = {
+            public_id: image.public_id,
+            url: image.secure_url,
+          };
+        } else {
+          console.log("2");
+          //없으면 그냥 업로드
+          const image = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "images",
+            width: 150,
+          });
+          console.log("3");
+          user.avatar = {
+            public_id: image.public_id,
+            url: image.secure_url,
+          };
+        }
+      }
+      await user?.save();
+
+      await redis.set(userId, JSON.stringify(user));
+
+      res.status(200).json({
+        success: true,
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(400, error.message));
+    }
+  }
+);
+//모든유저 조회 -- 어드민
+export const getAllUsersAdmin = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getAllUsersService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//유저권한 변경 -- 어드민
+export const editUsersRole = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, role } = req.body;
+      const isUserExist = await userModel.findOne({ email });
+      if (isUserExist) {
+        const id = isUserExist.id;
+        editUserRoleService(res, id, role);
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "유저를 찾을수없습니다.",
+        });
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
+    }
+  }
+);
+
+//유저 삭제 기능 -- 어드민
+export const delUser = AsyncErrorHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      const user = await userModel.findById(id);
+
+      if (!user) {
+        return next(new ErrorHandler(404, "유저를 찾을수없습니다."));
+      }
+
+      await user.deleteOne({ id });
+
+      await redis.del(id);
+
+      res.status(200).json({
+        success: true,
+        message: "유저가 성공적으로 삭제 되었습니다.",
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(500, error.message));
     }
   }
 );

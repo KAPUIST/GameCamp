@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>답글 알림</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      min-width: 100%;
+      font-size: 16px;
+      line-height: 1.2;
+      background-color: aliceblue;
+      color: black;
+    "
+  >
+    <div class="email-wrapper" style="max-width: 600px; margin: 0 auto">
+      <div
+        class="email-header"
+        style="background-color: #0060f3; padding: 24px; color: white"
+      >
+        <h1
+          style="
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+          "
+        >
+          반갑습니다 <%= name %>,
+        </h1>
+      </div>
+      <div class="email-body" style="padding: 24; background-color: white">
+        <p style="margin-top: 0; margin-bottom: 24px">
+          반갑습니다 <%= name %>,
+        </p>
+        <p style="margin-top: 0; margin-bottom: 24px">
+          GameCapm 강의 <%= title %> 에 새로운 답글이 생겼습니다.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
