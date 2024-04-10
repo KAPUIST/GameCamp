@@ -33,14 +33,14 @@ courseRoute.put(
   editCourse
 );
 //단일코스 가져오기
-courseRoute.get("/courses/:id", getSingleCourse);
+courseRoute.get("/course/:id", getSingleCourse);
 
 //모든코스 가져오기
 courseRoute.get("/courses", getAllCourses);
 
 // 사용자별 코스 내용 가져오기
 courseRoute.get(
-  "/courses/user/:id",
+  "/course/user/:id",
 
   isAuthenticated,
   getCourseByUser
@@ -48,7 +48,7 @@ courseRoute.get(
 
 //질문 추가 하기
 courseRoute.put(
-  "/courses/question",
+  "/course/question",
 
   isAuthenticated,
   addQuestion
@@ -56,7 +56,7 @@ courseRoute.put(
 
 //질문에 대한 답변 추가하기
 courseRoute.put(
-  "/courses/answer",
+  "/course/answer",
 
   isAuthenticated,
   answerQuestion
@@ -64,7 +64,7 @@ courseRoute.put(
 
 //리뷰 추가하기
 courseRoute.put(
-  "/courses/review/:id",
+  "/course/review/:id",
 
   isAuthenticated,
   addReview
@@ -72,7 +72,7 @@ courseRoute.put(
 
 //리뷰에 답글추가
 courseRoute.put(
-  "/courses/reply/review",
+  "/course/reply/review",
   isAuthenticated,
   validateUserRole("admin"),
   addReviewReply
