@@ -37,8 +37,6 @@ const Header: FC<Props> = ({ activeItem, setOpen, open, route, setRoute }) => {
   //   skip: !logout ? true : false,
   // });
   useEffect(() => {
-    console.log(user);
-    console.log(data);
     if (!user) {
       if (data) {
         socialAuth({

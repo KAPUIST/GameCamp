@@ -58,7 +58,7 @@ const AllUsers: FC<Props> = ({ isTeam }) => {
       }
     }
   }, [updateError, isSuccess, deleteSuccess, deleteError]);
-  console.log(theme);
+
   const columns = [
     { field: "id", headerName: "ID", flex: 0.3 },
     { field: "name", headerName: "Name", flex: 0.5 },
